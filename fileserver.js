@@ -1,49 +1,36 @@
-const http = require('http');
-const url = require('url');
-const fs = require('fs');
 
-http.createServer(function (req, res){
-  const q = url.parse(req.url, true);
-  const path =  q.pathname;
-  if (path === '/') {
-    fs.readFile('./index.html', function(err, data){
-      if (err) {
-        res.writeHead(404, {'Content-Type': 'text/html'});
-        return res.end('404 Not Found')
-      }
-      res.writeHead(200, {'Content-Type': 'text/html'});
-      res.write(data);
-      return res.end()
-    });
-  } else if (path === '/about'){
-    fs.readFile('./about.html', function(err, data){
-      if (err) {
-        res.writeHead(404, {'Content-Type': 'text/html'});
-        return res.end('404 Not Found')
-      }
-      res.writeHead(200, {'Content-Type': 'text/html'});
-      res.write(data);
-      return res.end()
-    })
-  } else if (path === '/contact-me') {
-    fs.readFile('./contact-me.html', function(err, data){
-      if (err) {
-        res.writeHead(404, {'Content-Type': 'text/html'});
-        return res.end('404 Not Found')
-      }
-      res.writeHead(200, {'Content-Type': 'text/html'});
-      res.write(data);
-      return res.end()
-    })
-  } else {
-    fs.readFile('./404.html', function(err, data){
-      if (err) {
-        res.writeHead(404, {'Content-Type': 'text/html'});
-        return res.end('404 Not Found')
-      }
-      res.writeHead(200, {'Content-Type': 'text/html'});
-      res.write(data);
-      return res.end()
-    })
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res)=>res.sendFile('/Users/nicolaslouis-kayen/repos/basic_informational_site/index.html'));
+
+
+app.get('/:name', function (req, res, next) {
+  var options = {
+    root: '/Users/nicolaslouis-kayen/repos/basic_informational_site/',
+    dotfiles: 'deny',
+    headers: {
+      'x-timestamp': Date.now(),
+      'x-sent': true
+    }
   }
-}).listen(8080);
+
+  const fileName = req.params.name
+    res.sendFile(fileName+'.html', options, function (err) {
+      if (err) {
+        // next(err)
+        res.sendFile('/404.html')
+      } else {
+        console.log('Sent:', fileName)
+      }
+    })
+})
+app.use(function (err, req, res, next) {
+    console.error(err.stack)
+    res.status(500).sendFile('/Users/nicolaslouis-kayen/repos/basic_informational_site/404.html')
+  })
+
+
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, ()=>console.log(' Informational Site app - listening on port '+PORT+'!'))
